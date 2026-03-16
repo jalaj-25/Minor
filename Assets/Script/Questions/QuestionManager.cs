@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
+using System.Collections.Generic;
 
 public class QuestionManager : MonoBehaviour
 {
@@ -21,7 +22,11 @@ public class QuestionManager : MonoBehaviour
 
     [Header("Questions")]
     public QuestionData[] questions;
+    
+    [Header("Test Settings")]
+    public int numberOfQuestionsToAsk = 5;
 
+    public Button submitButton;
     private QuestionData[] currentTestQuestions;
     private int currentQuestionIndex = 0;
     private int[] playerAnswers;   // stores selected answers
@@ -38,9 +43,29 @@ public class QuestionManager : MonoBehaviour
     {
         reportPanel.SetActive(false);
         questionPanel.SetActive(true);
-        //Time.timeScale = 0f;
 
-        currentTestQuestions = questions;
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+
+        // 🔥 Disable submit at start
+        submitButton.interactable = false;
+
+        // 🔥 Limit number of questions
+        int count = Mathf.Min(numberOfQuestionsToAsk, questions.Length);
+
+        List<QuestionData> shuffled = new List<QuestionData>(questions);
+
+        // Shuffle questions
+        for (int i = 0; i < shuffled.Count; i++)
+        {
+            QuestionData temp = shuffled[i];
+            int randomIndex = Random.Range(i, shuffled.Count);
+            shuffled[i] = shuffled[randomIndex];
+            shuffled[randomIndex] = temp;
+        }
+
+        currentTestQuestions = shuffled.GetRange(0, count).ToArray();
+
         playerAnswers = new int[currentTestQuestions.Length];
 
         for (int i = 0; i < playerAnswers.Length; i++)
@@ -107,8 +132,23 @@ public class QuestionManager : MonoBehaviour
     {
         Debug.Log("Selected Option: " + index);
         playerAnswers[currentQuestionIndex] = index;
+        CheckIfAllAnswered();
     }
 
+    void CheckIfAllAnswered()
+    {
+        for (int i = 0; i < playerAnswers.Length; i++)
+        {
+            if (playerAnswers[i] == -1)
+            {
+                submitButton.interactable = false;
+                return;
+            }
+        }
+
+        // If all answered
+        submitButton.interactable = true;
+    }
     // =========================
     // NEXT QUESTION
     // =========================
@@ -238,5 +278,10 @@ public class QuestionManager : MonoBehaviour
     {
         reportPanel.SetActive(false);
         Time.timeScale = 1f;
+    }
+
+    public void ClosePanel()
+    {
+        gameObject.SetActive(false);
     }
 }

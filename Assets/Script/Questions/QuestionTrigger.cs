@@ -23,6 +23,7 @@ public class QuestionTrigger : MonoBehaviour
         if (other.CompareTag("Player"))
         {
             playerInside = true;
+            Debug.Log("Player pressed E");
             interactionPanel.SetActive(true);
         }
     }
